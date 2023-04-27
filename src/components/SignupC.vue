@@ -7,6 +7,7 @@ const fullName = ref('')
 const dateOfBirth = ref('')
 const email = ref('')
 const password = ref('')
+const wrongData = ref(false)
 
 const onDateInput = (event: any) => {
   // Remove non-numeric characters from the input
@@ -33,9 +34,17 @@ const doSignup = () => {
     })
     .then((response) => {
       console.log(response)
+      localStorage.setItem('fullName', fullName.value)
+      localStorage.setItem('dateOfBirth', dateOfBirth.value)
+      localStorage.setItem('email', email.value)
+      emit('login')
     })
     .catch((error) => {
       console.log(error)
+      wrongData.value = true
+      setTimeout(() => {
+        wrongData.value = false
+      }, 3000)
     })
 }
 </script>
@@ -70,6 +79,7 @@ const doSignup = () => {
         />
       </div>
       <button type="submit" class="login__submit">Sign up</button>
+      <p class="wrong-password" v-if="wrongData">This email is busy or invalid</p>
     </form>
     <div class="login__other">
       <!-- <p class="login__other-forget">or <span @click="emit('forgot')">Forgot Password</span></p> -->
@@ -82,6 +92,14 @@ const doSignup = () => {
 </template>
 
 <style scoped lang="scss">
+.wrong-password {
+  color: #ff0000;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 16px;
+  text-align: center;
+  margin-bottom: -20px;
+}
 .login {
   display: flex;
   flex-direction: column;

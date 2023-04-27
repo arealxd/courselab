@@ -5,6 +5,7 @@ const router = useRouter()
 const route = useRoute()
 
 const emit = defineEmits(['signup', 'login'])
+const token = localStorage.getItem('token')
 
 const searchValue = ref('')
 const doSearch = () => {
@@ -29,8 +30,7 @@ const goCourses = () => {
 }
 
 const goProfile = () => {
-  if (localStorage.getItem('token') == null) {
-    showProfile.value = true
+  if (localStorage.getItem('token') === null) {
     router.push('/auth')
     login.value = true
     signup.value = false
@@ -57,12 +57,15 @@ const toggleLogin = () => {
 // }
 
 const logout = () => {
-  localStorage.removeItem('token')
+  localStorage.clear()
   router.push('/auth')
   login.value = false
   signup.value = false
   showProfile.value = false
 }
+
+const fullName = localStorage.getItem('fullName')
+const email = localStorage.getItem('email')
 </script>
 
 <template>
@@ -85,8 +88,8 @@ const logout = () => {
         <img src="/img/profile_icon.png" @click="goProfile" class="header__profile" alt="" />
         <div class="profile-popup" v-if="showProfile">
           <img src="/img/userAva.png" alt="" />
-          <p class="user-name">Alex Show</p>
-          <p class="user-email">alex@gmail.com</p>
+          <p class="user-name">{{ fullName }}</p>
+          <p class="user-email">{{ email }}</p>
           <hr />
           <div class="notification" @click="router.push('/my-courses')">
             <img src="/img/learning.png" alt="" />
@@ -95,7 +98,9 @@ const logout = () => {
           <p class="edit-profile" @click="router.push('/edit-profile')">Edit profile</p>
           <p class="logout-profile" @click="logout">Logout</p>
         </div>
-        <button to="/courses" class="header__login" @click="toggleLogin">Log in</button>
+        <button to="/courses" class="header__login" @click="toggleLogin" v-if="!token">
+          Log in
+        </button>
         <!-- :class="{ 'header__auth-active': login }" -->
 
         <button

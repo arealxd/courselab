@@ -7,17 +7,15 @@ import { ref, watch } from 'vue'
 // const router = useRouter()
 // const myCourses = ref(coursesJson)
 
-const firstName = ref<any>(localStorage.getItem('name'))
-const lastName = ref<any>(localStorage.getItem('surname'))
-const yearOfBirth = ref<any>(localStorage.getItem('yearOfBirth'))
+const fullName = ref<any>(localStorage.getItem('fullName'))
+const dateOfBirth = ref<any>(localStorage.getItem('dateOfBirth'))
 const email = ref<any>(localStorage.getItem('email'))
 const password = ref('')
 const confirmPassword = ref('')
 
 const editProfile = () => {
-  localStorage.setItem('name', firstName.value)
-  localStorage.setItem('surname', lastName.value)
-  localStorage.setItem('yearOfBirth', yearOfBirth.value)
+  localStorage.setItem('fullName', fullName.value)
+  localStorage.setItem('dateOfBirth', dateOfBirth.value)
   localStorage.setItem('email', email.value)
   if (confirmPassword.value !== '') {
     localStorage.setItem('password', confirmPassword.value)
@@ -44,6 +42,20 @@ watch(confirmPassword, () => {
   }
 })
 
+const onDateInput = (event: any) => {
+  // Remove non-numeric characters from the input
+  const cleanedInput = event.target.value.replace(/\D/g, '')
+  // Format the input as a date (DD/MM/YYYY)
+  if (cleanedInput.length <= 2) {
+    dateOfBirth.value = cleanedInput
+  } else if (cleanedInput.length <= 4) {
+    dateOfBirth.value = cleanedInput.slice(0, 2) + '/' + cleanedInput.slice(2)
+  } else {
+    dateOfBirth.value =
+      cleanedInput.slice(0, 2) + '/' + cleanedInput.slice(2, 4) + '/' + cleanedInput.slice(4, 8)
+  }
+}
+
 window.scrollTo(0, 0)
 </script>
 
@@ -57,30 +69,31 @@ window.scrollTo(0, 0)
       <div class="edit" v-auto-animate="{ duration: 500 }">
         <div class="edit-blocks">
           <div class="edit-input">
-            <p>First name</p>
-            <input type="text" v-model="firstName" placeholder="First name" />
+            <p>Full name</p>
+            <input type="text" v-model="fullName" placeholder="First name" />
           </div>
           <div class="edit-input">
-            <p>Last name</p>
-            <input type="text" v-model="lastName" placeholder="Last name" />
-          </div>
-          <div class="edit-input">
-            <p>Year of birth</p>
-            <input type="text" v-model="yearOfBirth" placeholder="Year of birth" />
+            <p>Date of birth</p>
+            <input
+              @input="onDateInput"
+              type="text"
+              v-model="dateOfBirth"
+              placeholder="Date of birth"
+            />
           </div>
         </div>
         <div class="edit-blocks">
           <div class="edit-input">
             <p>Email address</p>
-            <input type="text" v-model="email" placeholder="Email address" />
+            <input type="email" v-model="email" placeholder="Email address" />
           </div>
           <div class="edit-input">
             <p>Password</p>
-            <input type="text" v-model="password" placeholder="Password" />
+            <input v-model="password" type="password" placeholder="Password" />
           </div>
           <div class="edit-input">
             <p>Confirm password</p>
-            <input type="text" v-model="confirmPassword" placeholder="Confirm password" />
+            <input v-model="confirmPassword" type="password" placeholder="Confirm password" />
           </div>
         </div>
       </div>

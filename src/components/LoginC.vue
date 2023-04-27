@@ -1,13 +1,33 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import axios from 'axios'
+import router from '@/router'
 
 const emit = defineEmits(['forgot', 'signup'])
 
 const email = ref('')
 const password = ref('')
+const wrongData = ref(false)
 
 const doLogin = () => {
-  console.log('login: ' + email.value + ' ' + password.value)
+  axios
+    .post('http://localhost:8080/api/auth/login', {
+      email: email.value,
+      password: password.value
+    })
+    .then((response) => {
+      console.log(response)
+      localStorage.setItem('token', response.data.accessToken)
+      localStorage.setItem('user', response.data.roles[0])
+      router.push('/')
+    })
+    .catch((error) => {
+      console.log(error)
+      wrongData.value = true
+      setTimeout(() => {
+        wrongData.value = false
+      }, 3000)
+    })
 }
 </script>
 
@@ -26,6 +46,7 @@ const doLogin = () => {
         />
       </div>
       <button type="submit" class="login__submit">Log in</button>
+      <p class="wrong-password" v-if="wrongData">Wrong password or email</p>
     </form>
     <div class="login__other">
       <!-- <p class="login__other-forget">or <span @click="emit('forgot')">Forgot Password</span></p> -->
@@ -38,6 +59,14 @@ const doLogin = () => {
 </template>
 
 <style scoped lang="scss">
+.wrong-password {
+  color: #ff0000;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 16px;
+  text-align: center;
+  margin-bottom: -20px;
+}
 .login {
   display: flex;
   flex-direction: column;
