@@ -16,39 +16,50 @@ window.scrollTo(0, 0)
   <div class="container">
     <div class="courses">
       <p>My courses</p>
-      <div class="courses__list">
-        <div
-          class="courses__list-course"
-          v-for="i in myCourses.slice(0, 3)"
-          :key="i.id"
-          @click="router.push('/details/' + i.id + '/' + 1)"
-        >
-          <img :src="i.image" alt="" />
-          <div class="course__info">
-            <p class="course__info-name">{{ i.title }}</p>
-            <p class="course__info-description">{{ i.description }}</p>
-            <p class="course__info-author">{{ i.author }}</p>
-            <div class="course__info-rating">
-              <img src="/img/star.png" alt="" />
-              <p>{{ i.rating }}</p>
-            </div>
-            <div class="course__info-hours">
-              <p>{{ i.totalHours }} total hours</p>
-              <svg
-                width="6"
-                height="6"
-                viewBox="0 0 6 6"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M3.13513 5.42275C4.45513 5.42275 5.51113 4.36675 5.51113 3.04675C5.51113 1.72675 4.45513 0.67075 3.13513 0.67075C1.81513 0.67075 0.759125 1.72675 0.759125 3.04675C0.759125 4.36675 1.81513 5.42275 3.13513 5.42275Z"
-                  fill="#6A6F73"
-                />
-              </svg>
-              <p>{{ i.lecturesQuantity }} lectures</p>
+      <div class="courses__content">
+        <div class="courses__list">
+          <div
+            class="courses__list-course"
+            v-for="i in myCourses.slice(0, 3)"
+            :key="i.id"
+            @click="router.push('/details/' + i.id + '/' + 1)"
+          >
+            <img :src="i.image" alt="" />
+            <div class="course__info">
+              <p class="course__info-name">{{ i.title }}</p>
+              <p class="course__info-description">{{ i.description }}</p>
+              <p class="course__info-author">{{ i.author }}</p>
+              <div class="course__info-rating">
+                <img src="/img/star.png" alt="" />
+                <p>{{ i.rating }}</p>
+              </div>
+              <div class="course__info-hours">
+                <p>{{ i.totalHours }} total hours</p>
+                <svg
+                  width="6"
+                  height="6"
+                  viewBox="0 0 6 6"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3.13513 5.42275C4.45513 5.42275 5.51113 4.36675 5.51113 3.04675C5.51113 1.72675 4.45513 0.67075 3.13513 0.67075C1.81513 0.67075 0.759125 1.72675 0.759125 3.04675C0.759125 4.36675 1.81513 5.42275 3.13513 5.42275Z"
+                    fill="#6A6F73"
+                  />
+                </svg>
+                <p>{{ i.lecturesQuantity }} lectures</p>
+              </div>
             </div>
           </div>
+          <div class="havent-buy" v-if="myCourses.length === 0">
+            <p>You haven't bought the course yet</p>
+            <button @click="router.push('/courses')">View Courses</button>
+          </div>
+        </div>
+        <div class="courses__ad">
+          <a href="https://www.google.com/" target="_blank">
+            <img src="/img/ad.png" alt="" />
+          </a>
         </div>
       </div>
     </div>
@@ -67,6 +78,11 @@ window.scrollTo(0, 0)
     font-size: 40px;
     color: #ffffff;
   }
+}
+.courses__content {
+  display: flex;
+  margin-top: 40px;
+  gap: 40px;
 }
 .courses__list {
   display: flex;
@@ -127,6 +143,38 @@ window.scrollTo(0, 0)
         }
       }
     }
+  }
+}
+.courses__ad {
+  margin-left: auto;
+  margin-right: -140px;
+}
+.havent-buy {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  p {
+    font-weight: 500;
+    font-size: 20px;
+    color: #bdbdbd;
+    margin: 0 auto;
+  }
+  button {
+    width: 100%;
+    padding: 10px 0px;
+    background: #d0d0d0d6;
+    border-radius: 30px;
+    border: none;
+    font-weight: 700;
+    font-size: 15px;
+    color: #000000;
+    cursor: pointer;
+    margin: 0 auto;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+  }
+  button:hover {
+    background: rgb(241, 255, 46);
   }
 }
 </style>
