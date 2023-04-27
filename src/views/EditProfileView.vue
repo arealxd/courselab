@@ -1,0 +1,188 @@
+<script setup lang="ts">
+import HeaderC from '@/components/HeaderC.vue'
+import FooterC from '@/components/FooterC.vue'
+// import coursesJson from '@/json/courses.json'
+import { ref, watch } from 'vue'
+// import { useRouter } from 'vue-router'
+// const router = useRouter()
+// const myCourses = ref(coursesJson)
+
+const firstName = ref<any>(localStorage.getItem('name'))
+const lastName = ref<any>(localStorage.getItem('surname'))
+const yearOfBirth = ref<any>(localStorage.getItem('yearOfBirth'))
+const email = ref<any>(localStorage.getItem('email'))
+const password = ref('')
+const confirmPassword = ref('')
+
+const editProfile = () => {
+  localStorage.setItem('name', firstName.value)
+  localStorage.setItem('surname', lastName.value)
+  localStorage.setItem('yearOfBirth', yearOfBirth.value)
+  localStorage.setItem('email', email.value)
+  if (confirmPassword.value !== '') {
+    localStorage.setItem('password', confirmPassword.value)
+  }
+  successfullySaved.value = true
+  setTimeout(() => {
+    successfullySaved.value = false
+    password.value = ''
+    confirmPassword.value = ''
+  }, 1500)
+}
+
+const mismatch = ref(false)
+const successfullySaved = ref(false)
+const activeBtn = ref(true)
+
+watch(confirmPassword, () => {
+  if (password.value !== confirmPassword.value) {
+    mismatch.value = true
+    activeBtn.value = false
+  } else {
+    mismatch.value = false
+    activeBtn.value = true
+  }
+})
+
+window.scrollTo(0, 0)
+</script>
+
+<template>
+  <HeaderC />
+  <div class="container edit-view">
+    <div class="edit-profile">
+      <p>Edit profile</p>
+    </div>
+    <form @submit.prevent="editProfile" class="edit-form">
+      <div class="edit" v-auto-animate="{ duration: 500 }">
+        <div class="edit-blocks">
+          <div class="edit-input">
+            <p>First name</p>
+            <input type="text" v-model="firstName" placeholder="First name" />
+          </div>
+          <div class="edit-input">
+            <p>Last name</p>
+            <input type="text" v-model="lastName" placeholder="Last name" />
+          </div>
+          <div class="edit-input">
+            <p>Year of birth</p>
+            <input type="text" v-model="yearOfBirth" placeholder="Year of birth" />
+          </div>
+        </div>
+        <div class="edit-blocks">
+          <div class="edit-input">
+            <p>Email address</p>
+            <input type="text" v-model="email" placeholder="Email address" />
+          </div>
+          <div class="edit-input">
+            <p>Password</p>
+            <input type="text" v-model="password" placeholder="Password" />
+          </div>
+          <div class="edit-input">
+            <p>Confirm password</p>
+            <input type="text" v-model="confirmPassword" placeholder="Confirm password" />
+          </div>
+        </div>
+      </div>
+      <p class="password_mismatch" v-if="mismatch">Password mismatch!</p>
+      <p class="successfully_saved" v-if="successfullySaved">Successfully saved</p>
+      <button type="submit" v-if="activeBtn">Save</button>
+      <button type="button" v-else>Save</button>
+    </form>
+  </div>
+  <FooterC />
+</template>
+
+<style scoped lang="scss">
+.edit-view {
+  padding: 20px 150px;
+  padding-bottom: 200px;
+}
+.edit-profile {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  p {
+    margin: 0 auto;
+    font-weight: 700;
+    font-size: 40px;
+    color: #ffffff;
+  }
+}
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  gap: 20px;
+  margin: 0 auto;
+  button {
+    width: 100%;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: rgb(1, 119, 253);
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  button:hover {
+    background-color: rgb(0, 82, 204);
+  }
+}
+.edit {
+  display: flex;
+  margin-top: 20px;
+  gap: 50px;
+}
+.edit-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.edit-input {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  p {
+    font-weight: 500;
+    font-size: 17px;
+    color: #ffffff;
+  }
+  input {
+    width: 100%;
+    max-width: 300px;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    background-color: rgb(255, 246, 123);
+    outline: none;
+  }
+  input::placeholder {
+    color: #535353;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+.password_mismatch {
+  color: red;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 auto;
+  margin: -10px auto;
+}
+.successfully_saved {
+  color: rgb(31, 187, 0);
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 auto;
+  margin: -10px auto;
+}
+</style>
