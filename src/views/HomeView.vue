@@ -55,7 +55,7 @@ const getCourses = () => {
     })
 }
 
-getCourses()
+// getCourses()
 </script>
 
 <template>

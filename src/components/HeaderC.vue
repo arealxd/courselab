@@ -73,6 +73,7 @@ const getProfile = () => {
       }
     })
     .then((res) => {
+      console.log('getProfile is work')
       console.log(res)
       localStorage.setItem('fullName', res.data.fullName)
       localStorage.setItem('email', res.data.email)
@@ -84,8 +85,8 @@ const getProfile = () => {
 
 getProfile()
 
-const fullName = localStorage.getItem('fullName')
-const email = localStorage.getItem('email')
+// const fullName = localStorage.getItem('fullName')
+// const email = localStorage.getItem('email')
 </script>
 
 <template>
