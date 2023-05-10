@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 import coursesJson from '@/json/courses.json'
+import axios from 'axios'
 
 const courses = ref(coursesJson)
 
@@ -42,6 +43,19 @@ const previousCourse = () => {
 }
 
 window.scrollTo(0, 0)
+
+const getCourses = () => {
+  axios
+    .get('http://localhost:8080/api/public/course/all', {})
+    .then((res) => {
+      console.log(res)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+getCourses()
 </script>
 
 <template>

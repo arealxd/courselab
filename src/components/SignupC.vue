@@ -79,7 +79,7 @@ const doSignup = () => {
         />
       </div>
       <button type="submit" class="login__submit">Sign up</button>
-      <p class="wrong-password" v-if="wrongData">This email is busy or invalid</p>
+      <p class="wrong-password" v-if="wrongData">This email is busy or invalid data</p>
     </form>
     <div class="login__other">
       <!-- <p class="login__other-forget">or <span @click="emit('forgot')">Forgot Password</span></p> -->

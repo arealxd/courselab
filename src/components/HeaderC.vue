@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 const router = useRouter()
 const route = useRoute()
 
@@ -63,6 +64,25 @@ const logout = () => {
   signup.value = false
   showProfile.value = false
 }
+
+const getProfile = () => {
+  axios
+    .get('http://localhost:8080/api/user/myProfile', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    })
+    .then((res) => {
+      console.log(res)
+      localStorage.setItem('fullName', res.data.fullName)
+      localStorage.setItem('email', res.data.email)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+getProfile()
 
 const fullName = localStorage.getItem('fullName')
 const email = localStorage.getItem('email')
