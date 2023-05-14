@@ -4,10 +4,10 @@ import FooterC from '@/components/FooterC.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
-import coursesJson from '@/json/courses.json'
+// import coursesJson from '@/json/courses.json'
 import axios from 'axios'
 
-const courses = ref(coursesJson)
+const courses = ref()
 
 const firstIndex = ref(0)
 const secondIndex = ref(1)
@@ -44,18 +44,14 @@ const previousCourse = () => {
 
 window.scrollTo(0, 0)
 
-const getCourses = () => {
-  axios
-    .get('http://localhost:8080/api/public/course/all', {})
-    .then((res) => {
-      console.log(res)
-    })
-    .catch((err) => {
-      console.log(err)
-    })
-}
-
-// getCourses()
+axios
+  .get('http://localhost:8080/api/public/course/all', {})
+  .then((res) => {
+    courses.value = res.data.content
+  })
+  .catch((err) => {
+    console.log(err)
+  })
 </script>
 
 <template>
@@ -92,31 +88,59 @@ const getCourses = () => {
       <p class="rec__description">
         Choose the online video course you need, new additions are published every month.
       </p>
-      <div class="rec__list">
-        <img @click="previousCourse" src="/img/button-left.png" class="arrow" alt="" />
+      <div class="rec__list" v-if="courses?.length > 0">
+        <img
+          @click="previousCourse"
+          v-if="courses?.length > 4"
+          src="/img/button-left.png"
+          class="arrow"
+          alt=""
+        />
         <div class="rec__courses">
-          <div class="course" @click="router.push('/details/' + courses[firstIndex].id + '/' + 3)">
-            <img :src="courses[firstIndex].image" alt="" />
-            <p class="course__name">{{ courses[firstIndex].title }}</p>
-            <p class="course__author">{{ courses[firstIndex].author }}</p>
+          <div
+            class="course"
+            v-if="courses.length > 0"
+            @click="router.push('/details/' + courses[firstIndex].id + '/' + 3)"
+          >
+            <img :src="courses[firstIndex]?.fileDto?.url" alt="" />
+            <p class="course__name">{{ courses[firstIndex]?.title }}</p>
+            <p class="course__author">{{ courses[firstIndex]?.author }}</p>
           </div>
-          <div class="course" @click="router.push('/details/' + courses[secondIndex].id + '/' + 3)">
-            <img :src="courses[secondIndex].image" alt="" />
+          <div
+            class="course"
+            v-if="courses.length > 1"
+            @click="router.push('/details/' + courses[secondIndex].id + '/' + 3)"
+          >
+            <img :src="courses[secondIndex]?.fileDto?.url" alt="" />
             <p class="course__name">{{ courses[secondIndex].title }}</p>
             <p class="course__author">{{ courses[secondIndex].author }}</p>
           </div>
-          <div class="course" @click="router.push('/details/' + courses[thirdIndex].id + '/' + 3)">
-            <img :src="courses[thirdIndex].image" alt="" />
-            <p class="course__name">{{ courses[thirdIndex].title }}</p>
-            <p class="course__author">{{ courses[thirdIndex].author }}</p>
+          <div
+            class="course"
+            v-if="courses.length > 2"
+            @click="router.push('/details/' + courses[thirdIndex].id + '/' + 3)"
+          >
+            <img :src="courses[thirdIndex]?.fileDto?.url" alt="" />
+            <p class="course__name">{{ courses[thirdIndex]?.title }}</p>
+            <p class="course__author">{{ courses[thirdIndex]?.author }}</p>
           </div>
-          <div class="course" @click="router.push('/details/' + courses[fourthIndex].id + '/' + 3)">
-            <img :src="courses[fourthIndex].image" alt="" />
-            <p class="course__name">{{ courses[fourthIndex].title }}</p>
-            <p class="course__author">{{ courses[fourthIndex].author }}</p>
+          <div
+            class="course"
+            v-if="courses.length > 3"
+            @click="router.push('/details/' + courses[fourthIndex].id + '/' + 3)"
+          >
+            <img :src="courses[fourthIndex]?.fileDto?.url" alt="" />
+            <p class="course__name">{{ courses[fourthIndex]?.title }}</p>
+            <p class="course__author">{{ courses[fourthIndex]?.author }}</p>
           </div>
         </div>
-        <img @click="nextCourse" src="/img/button-left.png" class="arrow arrow-rotate" alt="" />
+        <img
+          @click="nextCourse"
+          v-if="courses?.length > 4"
+          src="/img/button-left.png"
+          class="arrow arrow-rotate"
+          alt=""
+        />
       </div>
     </div>
   </div>

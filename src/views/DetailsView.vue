@@ -5,11 +5,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 import { useRoute } from 'vue-router'
-import coursesJson from '@/json/courses.json'
+import axios from 'axios'
+// import coursesJson from '@/json/courses.json'
 import VideoPopup from '@/components/VideoPopup.vue'
 
 const route = useRoute()
-const course = ref(coursesJson.find((course) => course.id == route.params.id))
+const course = ref()
 
 window.scrollTo(0, 0)
 
@@ -17,16 +18,138 @@ const buyed = ref(false)
 
 const buyForm = ref(false)
 const successBuy = ref(false)
+const authorized = ref(false)
+
+if (localStorage.getItem('token')) {
+  authorized.value = true
+}
+
+const buyNow = () => {
+  if (localStorage.getItem('token')) {
+    buyForm.value = true
+  } else {
+    router.push('/auth')
+  }
+}
 
 const buy_post = () => {
-  successBuy.value = true
-  setTimeout(() => {
-    buyed.value = true
-    buyForm.value = false
-  }, 2000)
+  axios
+    .post(
+      `http://localhost:8080/api/user/buy/${route.params.id}`,
+      {},
+      {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token')
+        }
+      }
+    )
+    .then((res) => {
+      console.log(res)
+      getCourseToken()
+      successBuy.value = true
+      setTimeout(() => {
+        buyed.value = true
+        buyForm.value = false
+        window.scrollTo(0, 0)
+      }, 2000)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 const showPopup = ref(false)
+
+const getCourseById = () => {
+  axios
+    .get(`http://localhost:8080/api/public/course/${route.params.id}`, {})
+    .then((res) => {
+      course.value = res.data
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+const getCourseToken = () => {
+  axios
+    .get(`http://localhost:8080/api/public/course/${route.params.id}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    })
+    .then((res) => {
+      course.value = res.data
+      console.log(course.value)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+getCourseById()
+
+const myCourses = ref()
+
+if (localStorage.getItem('token')) {
+  axios
+    .get('http://localhost:8080/api/user/myCourses', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    })
+    .then((res) => {
+      myCourses.value = res.data.content
+      myCourses.value.forEach((i) => {
+        if (i.id == route.params.id) {
+          buyed.value = true
+          getCourseToken()
+        }
+      })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+const showReviews = ref(true)
+
+const courseId = ref(route.params.id)
+const text = ref('')
+const rating = ref('')
+const successLeaveReview = ref(false)
+const showForm = ref(true)
+
+const postReview = () => {
+  axios
+    .post(
+      `http://localhost:8080/api/user/comment`,
+      {
+        courseId: courseId.value,
+        text: text.value,
+        rating: Number(rating.value)
+      },
+      {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token')
+        }
+      }
+    )
+    .then((res) => {
+      console.log(res)
+      getCourseToken()
+      text.value = ''
+      rating.value = ''
+      successLeaveReview.value = true
+      setTimeout(() => {
+        successLeaveReview.value = false
+        showForm.value = false
+      }, 2000)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
 </script>
 
 <template>
@@ -49,7 +172,7 @@ const showPopup = ref(false)
         </svg>
         <p v-if="route.params.from == 1" @click="router.push('/my-courses')">My courses</p>
         <p v-else-if="route.params.from == 2" @click="router.push('/courses')">Courses</p>
-        <p v-else-if="route.params.from == 3">{{ course.title }}</p>
+        <p v-else-if="route.params.from == 3">{{ course?.title }}</p>
         <p v-else>Courses</p>
         <svg
           v-if="route.params.from != 3"
@@ -64,16 +187,16 @@ const showPopup = ref(false)
             fill="white"
           />
         </svg>
-        <p v-if="route.params.from != 3">{{ course.title }}</p>
+        <p v-if="route.params.from != 3">{{ course?.title }}</p>
       </div>
       <div class="courses__preview">
         <div class="courses__preview-img">
-          <img :src="course.image" alt="" />
+          <img :src="course?.fileDto?.url" alt="" />
           <div class="courses__preview-info-btns">
             <button
               class="courses__preview-info-btns-buy"
               type="button"
-              @click="buyForm = true"
+              @click="buyNow"
               v-if="!buyForm && !buyed"
             >
               Buy now
@@ -97,18 +220,19 @@ const showPopup = ref(false)
         </div>
         <div class="courses__preview-info">
           <div class="courses__preview-header">
-            <p class="courses__preview-info-title">{{ course.title }}</p>
+            <p class="courses__preview-info-title">{{ course?.title }}</p>
 
-            <p class="price" v-if="!buyed">{{ course.price }} $</p>
+            <p class="price" v-if="!buyed">{{ course?.price }} $</p>
           </div>
           <p class="author">
-            Author: <span>{{ course.author }}</span>
+            Author: <span v-if="course?.author">{{ course?.author }}</span>
+            <span v-else>Course Lab</span>
           </p>
           <p class="language">
-            Language: <span>{{ course.courseLanguage }}</span>
+            Language: <span>{{ course?.language }}</span>
           </p>
           <div class="hours">
-            <p>{{ course.totalHours }} total hours</p>
+            <p>{{ course?.totalHours }} total hours</p>
             <svg
               width="6"
               height="6"
@@ -122,18 +246,18 @@ const showPopup = ref(false)
               />
             </svg>
 
-            <p>{{ course.lecturesQuantity }} lectures</p>
+            <p>{{ course?.lecturesQuantity }} lectures</p>
           </div>
           <div class="rating">
             <img src="/img/star.png" alt="" />
-            <p>{{ course.rating }}</p>
+            <p>{{ course?.rating }}</p>
           </div>
-          <p class="courses__preview-info-desc">{{ course.description }}</p>
+          <p class="courses__preview-info-desc">{{ course?.description }}</p>
         </div>
       </div>
     </div>
     <div class="content">
-      <div class="content__learn">
+      <!-- <div class="content__learn">
         <p class="content__learn-title">What you'll learn</p>
         <div class="content__learn-list">
           <div class="content__learn-list-item" v-for="i in 6" :key="i">
@@ -156,15 +280,64 @@ const showPopup = ref(false)
             </p>
           </div>
         </div>
-      </div>
-      <p class="content__title">Course content</p>
-      <div class="content__section" v-for="n in 5" :key="n">
-        <div class="content__section-title">
-          <p>{{ n }}. Object Oriented Programming</p>
-          <p>4 lectures • 41min</p>
+      </div> -->
+      <div class="comments" v-if="(buyed && authorized) || course?.commentDtos?.length > 0">
+        <div class="comments__show" @click="showReviews = !showReviews">
+          <p class="comments__title">Course Reviews</p>
+          <p>{{ showReviews ? '🔽' : '🔼' }}</p>
         </div>
-        <div v-if="n === 1 || buyed">
-          <div class="content__section-videos" v-for="i in 4" :key="i">
+        <form
+          @submit.prevent="postReview"
+          class="comments__leave-form"
+          v-if="showReviews && buyed && showForm"
+        >
+          <input
+            type="number"
+            placeholder="Rating from 1 to 5"
+            class="comments__leave-form__rating"
+            required
+            v-model="rating"
+          />
+          <input
+            type="text"
+            placeholder="Your review about the course"
+            class="comments__leave-form__text"
+            required
+            v-model="text"
+          />
+          <button type="submit">Leave a review</button>
+          <p class="success" v-if="successLeaveReview">Successfully sent</p>
+        </form>
+        <div v-if="showReviews && course?.commentDtos?.length > 0">
+          <div
+            class="comments__comment"
+            v-for="(comment, index) in course?.commentDtos"
+            :key="index"
+          >
+            <div class="comments__comment-header">
+              <div class="comments__comment-header-user">
+                <img src="/img/user.png" alt="" />
+                <p>{{ comment?.createdBy?.fullName }}</p>
+              </div>
+              <div class="comments__comment-header-rating">
+                <img src="/img/star.png" alt="" />
+                <p>{{ comment?.rating }}</p>
+              </div>
+            </div>
+            <p class="comments__comment-text">
+              {{ comment?.text }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <p class="content__title" v-if="buyed">Course content</p>
+      <div v-if="buyed">
+        <div class="content__section" v-for="(n, index) in course?.sectionDtos" :key="index">
+          <div class="content__section-title">
+            <p>{{ ++index }}. {{ n?.title }}</p>
+            <p>{{ n?.moduleDtos?.length }} lectures</p>
+          </div>
+          <div class="content__section-videos" v-for="(i, index) in n?.moduleDtos" :key="index">
             <div class="content__section-videos-name">
               <svg
                 width="15"
@@ -178,11 +351,11 @@ const showPopup = ref(false)
                   fill="#E0E1E3"
                 />
               </svg>
-              <p @click="showPopup = true">Course Introduction</p>
+              <p @click="showPopup = true">{{ i?.title }}</p>
             </div>
-            <p class="content__section-videos-duration">06:39</p>
+            <p class="content__section-videos-duration">{{ i?.duration }}</p>
             <VideoPopup
-              :videourl="'https://www.youtube.com/embed/nhBVL41-_Cw'"
+              :videourl="i?.videoLink"
               :onClose="
                 () => {
                   showPopup = false
@@ -199,6 +372,127 @@ const showPopup = ref(false)
 </template>
 
 <style scoped lang="scss">
+.comments__leave-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 50px;
+  width: 100%;
+  max-width: 400px;
+  input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #ffffff;
+    padding: 5px 10px;
+    background: transparent;
+    outline: none;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    max-width: 400px;
+  }
+  input::placeholder {
+    color: #b3b3b3;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  button {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 0px;
+    background: #5cdb95;
+    border-radius: 30px;
+    border: none;
+    font-weight: 700;
+    font-size: 18px;
+    color: #000000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  button:hover {
+    background: #4ea884;
+  }
+  .success {
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0 auto;
+    color: #00cb07;
+    margin-top: -10px;
+  }
+}
+.comments {
+  display: flex;
+  flex-direction: column;
+  border-radius: 30px;
+  .comments__show {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0px 0px;
+    p {
+      font-weight: 700;
+      font-size: 25px;
+      color: #ffffff;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    :nth-child(2) {
+      border-radius: 100%;
+    }
+  }
+  .comments__show p:hover {
+    color: #569dff;
+  }
+  .comments__comment {
+    padding: 20px 30px;
+    border: 1px solid #2e363c;
+    border-radius: 30px;
+    margin-bottom: 30px;
+    margin-top: 20px;
+    .comments__comment-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      .comments__comment-header-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+        }
+        p {
+          font-weight: 700;
+          font-size: 16px;
+          color: #ffffff;
+        }
+      }
+      .comments__comment-header-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        img {
+          width: 15px;
+          height: 15px;
+        }
+        p {
+          font-weight: 700;
+          font-size: 16px;
+          color: #f0c800;
+        }
+      }
+    }
+    .comments__comment-text {
+      font-weight: 400;
+      font-size: 16px;
+      color: #ffffff;
+    }
+  }
+}
 .courses {
   padding: 30px 0px 0px 150px;
   padding-bottom: 230px;
@@ -229,9 +523,11 @@ const showPopup = ref(false)
   display: flex;
   gap: 30px;
   margin-top: 30px;
+
   .courses__preview-img {
-    width: 400px;
+    width: 100%;
     height: 400px;
+    max-width: 400px;
     img {
       width: 100%;
       height: 100%;
@@ -262,10 +558,13 @@ const showPopup = ref(false)
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-right: 100px;
+    width: 100%;
     .courses__preview-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+
       .price {
         font-weight: 700;
         font-size: 25px;
@@ -357,7 +656,8 @@ const showPopup = ref(false)
     font-weight: 700;
     font-size: 26px;
     color: #5cdb95;
-    margin-top: 50px;
+    margin-top: 40px;
+    margin-bottom: 20px;
   }
 }
 .content__section-title {

@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import HeaderC from '@/components/HeaderC.vue'
 import FooterC from '@/components/FooterC.vue'
-import coursesJson from '@/json/courses.json'
+// import coursesJson from '@/json/courses.json'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 const router = useRouter()
 
-const myCourses = ref(coursesJson)
+const myCourses = ref()
 
 window.scrollTo(0, 0)
+
+axios
+  .get('http://localhost:8080/api/user/myCourses', {
+    headers: {
+      Authorization: 'Bearer ' + localStorage.getItem('token')
+    }
+  })
+  .then((res) => {
+    myCourses.value = res.data.content
+  })
+  .catch((err) => {
+    console.log(err)
+  })
 </script>
 
 <template>
@@ -20,11 +34,11 @@ window.scrollTo(0, 0)
         <div class="courses__list">
           <div
             class="courses__list-course"
-            v-for="i in myCourses.slice(0, 3)"
-            :key="i.id"
-            @click="router.push('/details/' + i.id + '/' + 1)"
+            v-for="(i, index) in myCourses"
+            :key="index"
+            @click="router.push('/details/' + i?.id + '/' + 1)"
           >
-            <img :src="i.image" alt="" />
+            <img :src="i?.fileDto?.url" alt="" />
             <div class="course__info">
               <p class="course__info-name">{{ i.title }}</p>
               <p class="course__info-description">{{ i.description }}</p>
@@ -51,7 +65,7 @@ window.scrollTo(0, 0)
               </div>
             </div>
           </div>
-          <div class="havent-buy" v-if="myCourses.length === 0">
+          <div class="havent-buy" v-if="myCourses?.length === 0">
             <p>You haven't bought the course yet</p>
             <button @click="router.push('/courses')">View Courses</button>
           </div>
@@ -81,7 +95,7 @@ window.scrollTo(0, 0)
 }
 .courses__content {
   display: flex;
-  margin-top: 40px;
+  margin-top: 0px;
   gap: 40px;
 }
 .courses__list {
@@ -109,7 +123,7 @@ window.scrollTo(0, 0)
       }
       .course__info-description {
         font-weight: 400;
-        font-size: 16px;
+        font-size: 14px;
         color: #ffffff;
         max-width: 650px;
       }

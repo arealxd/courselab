@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
-import router from '@/router'
+// import router from '@/router'
 
 const emit = defineEmits(['forgot', 'signup'])
 
@@ -19,7 +19,7 @@ const doLogin = () => {
       console.log(response)
       localStorage.setItem('token', response.data.accessToken)
       localStorage.setItem('user', response.data.roles[0])
-      router.push('/')
+      window.location.reload()
     })
     .catch((error) => {
       console.log(error)

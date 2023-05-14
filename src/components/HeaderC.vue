@@ -9,9 +9,21 @@ const emit = defineEmits(['signup', 'login'])
 const token = localStorage.getItem('token')
 
 const searchValue = ref('')
+const searchResult = ref()
+
 const doSearch = () => {
-  console.log('search: ' + searchValue.value)
-  searchValue.value = ''
+  axios
+    .get(`http://localhost:8080/api/public/course/search?title=${searchValue.value}`, {})
+    .then((res) => {
+      searchResult.value = res.data.content
+      searchValue.value = ''
+      localStorage.setItem('searchResult', JSON.stringify(searchResult.value))
+      router.push('/courses/search')
+      emit('searchResult', searchResult.value)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 const login = ref(false)
@@ -26,6 +38,7 @@ const goHome = () => {
 
 const goCourses = () => {
   router.push('/courses')
+  emit('all-courses')
   login.value = false
   signup.value = false
 }
@@ -65,6 +78,9 @@ const logout = () => {
   showProfile.value = false
 }
 
+const fullName = ref('')
+const email = ref('')
+
 const getProfile = () => {
   axios
     .get('http://localhost:8080/api/user/myProfile', {
@@ -73,20 +89,19 @@ const getProfile = () => {
       }
     })
     .then((res) => {
-      console.log('getProfile is work')
-      console.log(res)
-      localStorage.setItem('fullName', res.data.fullName)
-      localStorage.setItem('email', res.data.email)
+      fullName.value = res.data.fullName
+      email.value = res.data.email
     })
     .catch((err) => {
       console.log(err)
+      if (err.response.status === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
     })
 }
 
 getProfile()
-
-// const fullName = localStorage.getItem('fullName')
-// const email = localStorage.getItem('email')
 </script>
 
 <template>

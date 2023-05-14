@@ -1,31 +1,58 @@
 <script setup lang="ts">
 import HeaderC from '@/components/HeaderC.vue'
 import FooterC from '@/components/FooterC.vue'
-// import coursesJson from '@/json/courses.json'
 import { ref, watch } from 'vue'
-// import { useRouter } from 'vue-router'
-// const router = useRouter()
-// const myCourses = ref(coursesJson)
+import axios from 'axios'
+
+axios
+  .get('http://localhost:8080/api/user/myProfile', {
+    headers: {
+      Authorization: 'Bearer ' + localStorage.getItem('token')
+    }
+  })
+  .then((res) => {
+    fullName.value = res.data.fullName
+    email.value = res.data.email
+  })
+  .catch((err) => {
+    console.log(err)
+  })
 
 const fullName = ref<any>(localStorage.getItem('fullName'))
-const dateOfBirth = ref<any>(localStorage.getItem('dateOfBirth'))
+const dateOfBirth = ref<any>('31.07.2000')
 const email = ref<any>(localStorage.getItem('email'))
 const password = ref('')
 const confirmPassword = ref('')
 
 const editProfile = () => {
-  localStorage.setItem('fullName', fullName.value)
-  localStorage.setItem('dateOfBirth', dateOfBirth.value)
-  localStorage.setItem('email', email.value)
-  if (confirmPassword.value !== '') {
-    localStorage.setItem('password', confirmPassword.value)
-  }
-  successfullySaved.value = true
-  setTimeout(() => {
-    successfullySaved.value = false
-    password.value = ''
-    confirmPassword.value = ''
-  }, 1500)
+  axios
+    .put(
+      'http://localhost:8080/api/user/update',
+      {
+        fullName: fullName.value,
+        dateOfBirth: dateOfBirth.value,
+        email: email.value,
+        password: password.value,
+        matchingPassword: password.value
+      },
+      {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token')
+        }
+      }
+    )
+    .then((res) => {
+      console.log(res)
+      successfullySaved.value = true
+      setTimeout(() => {
+        successfullySaved.value = false
+        password.value = ''
+        confirmPassword.value = ''
+      }, 1500)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 const mismatch = ref(false)
@@ -88,7 +115,7 @@ window.scrollTo(0, 0)
             <input type="email" v-model="email" placeholder="Email address" />
           </div>
           <div class="edit-input">
-            <p>Password</p>
+            <p>Password (optional)</p>
             <input v-model="password" type="password" placeholder="Password" />
           </div>
           <div class="edit-input">

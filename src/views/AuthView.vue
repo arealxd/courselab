@@ -31,6 +31,10 @@ const toggleForgotPassword = () => {
 }
 
 window.scrollTo(0, 0)
+
+if (localStorage.getItem('token')) {
+  window.location.href = '/'
+}
 </script>
 
 <template>

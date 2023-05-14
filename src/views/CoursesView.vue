@@ -1,23 +1,75 @@
 <script setup lang="ts">
 import HeaderC from '@/components/HeaderC.vue'
 import FooterC from '@/components/FooterC.vue'
-import coursesJson from '@/json/courses.json'
+// import coursesJson from '@/json/courses.json'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 
-const allCourses = ref(coursesJson)
+const router = useRouter()
+const route = useRoute()
+
+const allCourses = ref()
 
 const applyFilter = () => {
-  console.log('filter')
-  window.scrollTo(0, 0)
+  axios
+    .get('http://localhost:8080/api/public/course/all', {
+      params: {
+        sort: sort.value,
+        rating: rating.value,
+        hours: hours.value
+      }
+    })
+    .then((res) => {
+      allCourses.value = res.data.content
+      console.log(allCourses.value)
+      window.scrollTo(0, 0)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 window.scrollTo(0, 0)
+
+const getCourses = () => {
+  axios
+    .get('http://localhost:8080/api/public/course/all', {})
+    .then((res) => {
+      if (localStorage.getItem('searchResult') !== null && route.params.from === 'search') {
+        allCourses.value = JSON.parse(localStorage.getItem('searchResult'))
+      } else {
+        allCourses.value = res.data.content
+      }
+      localStorage.removeItem('searchResult')
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+getCourses()
+
+const setSearchResult = (object) => {
+  allCourses.value = object
+  localStorage.removeItem('searchResult')
+}
+
+const sort = ref()
+const rating = ref()
+const hours = ref()
+
+const resetFilter = () => {
+  sort.value = undefined
+  rating.value = undefined
+  hours.value = undefined
+  getCourses()
+  window.scrollTo(0, 0)
+}
 </script>
 
 <template>
-  <HeaderC />
+  <HeaderC @searchResult="setSearchResult" @all-courses="getCourses" />
   <div class="container">
     <div class="courses">
       <p>Courses</p>
@@ -41,13 +93,13 @@ window.scrollTo(0, 0)
           </div>
           <hr />
           <form @submit.prevent="applyFilter">
-            <select class="courses__filter-sort">
-              <option selected hidden>Sort by</option>
-              <option value="popular">Popularity</option>
-              <option value="desc">Descending price</option>
-              <option value="asc">Ascending price</option>
+            <select class="courses__filter-sort" v-model="sort">
+              <option :value="undefined" selected hidden>Sort by</option>
+              <option value="MOST_POPULAR">Most popular</option>
+              <option value="HIGH_RATING">High rating</option>
+              <option value="NEW">New</option>
             </select>
-            <select class="courses__filter-sort">
+            <!-- <select class="courses__filter-sort">
               <option selected hidden>Topic</option>
               <option value="en">JavaScript</option>
               <option value="ru">PHP</option>
@@ -61,42 +113,46 @@ window.scrollTo(0, 0)
               <option value="kz">UX/UI Design</option>
               <option value="kz">Mathematics</option>
               <option value="kz">Physics</option>
+            </select> -->
+            <select class="courses__filter-sort" v-model="rating">
+              <option :value="undefined" selected hidden>Rating</option>
+              <option value="5">5.0</option>
+              <option value="4">4.0+</option>
+              <option value="3">3.0+</option>
             </select>
-            <select class="courses__filter-sort">
-              <option selected hidden>Rating</option>
-              <option value="4.5+">4.5+</option>
-              <option value="4.0+">4.0+</option>
-              <option value="3.0+">3.0+</option>
+            <select class="courses__filter-sort" v-model="hours">
+              <option :value="undefined" selected hidden>Duration</option>
+              <option value="ONE_TO_THREE">1-3 hours</option>
+              <option value="THREE_TO_SIX">3-6 hours</option>
+              <option value="SIX_TO_SEVENTEEN">6-17 hours</option>
+              <option value="MORE_SEVENTEEN">17+ hours</option>
             </select>
-            <select class="courses__filter-sort">
-              <option selected hidden>Video Duration</option>
-              <option value="0-10">0-10 hours</option>
-              <option value="10-20">10-20 hours</option>
-              <option value="20-30">20-30 hours</option>
-              <option value="30+">30+ hours</option>
-            </select>
-            <select class="courses__filter-sort">
+            <!-- <select class="courses__filter-sort">
               <option selected hidden>Price</option>
               <option value="paid">Paid</option>
               <option value="free">Free</option>
-            </select>
-            <select class="courses__filter-sort">
+            </select> -->
+            <!-- <select class="courses__filter-sort">
               <option selected hidden>Language</option>
               <option value="en">English</option>
               <option value="ru">Руский</option>
               <option value="kz">Қазақша</option>
-            </select>
-            <button class="courses__filter-apply">Apply</button>
+            </select> -->
+            <button type="submit" class="courses__filter-apply">Apply</button>
+            <button type="button" @click="resetFilter" class="courses__filter-apply">Reset</button>
           </form>
         </div>
-        <div class="courses__list">
+        <div class="not-found" v-if="allCourses?.length === 0">
+          <h1>Courses not found</h1>
+        </div>
+        <div class="courses__list" v-else>
           <div
             class="courses__list-course"
             v-for="i in allCourses"
             :key="i.id"
             @click="router.push('/details/' + i.id + '/' + 2)"
           >
-            <img :src="i.image" alt="" />
+            <img :src="i.fileDto.url" alt="" />
             <div class="course__info">
               <div class="course__info-title">
                 <p class="course__info-name">{{ i.title }}</p>
@@ -104,7 +160,7 @@ window.scrollTo(0, 0)
               </div>
               <p class="course__info-description">{{ i.description }}</p>
               <p class="course__info-author">{{ i.author }}</p>
-              <div class="course__info-rating">
+              <div class="course__info-rating" v-if="i.rating">
                 <img src="/img/star.png" alt="" />
                 <p>{{ i.rating }}</p>
               </div>
@@ -157,6 +213,7 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 250px;
   .courses__filter-title {
     display: flex;
     align-items: center;
@@ -221,6 +278,7 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 30px;
+  width: 100%;
 
   .courses__list-course {
     cursor: pointer;
@@ -235,6 +293,7 @@ hr {
       display: flex;
       flex-direction: column;
       gap: 5px;
+      width: 100%;
       .course__info-title {
         display: flex;
         align-items: center;
@@ -286,6 +345,15 @@ hr {
         color: #5cdb95;
       }
     }
+  }
+}
+
+.not-found {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  h1 {
+    color: #acacac;
   }
 }
 .courses__ad {
