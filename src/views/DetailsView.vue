@@ -248,7 +248,7 @@ const postReview = () => {
 
             <p>{{ course?.lecturesQuantity }} lectures</p>
           </div>
-          <div class="rating">
+          <div class="rating" v-if="course?.rating">
             <img src="/img/star.png" alt="" />
             <p>{{ course?.rating }}</p>
           </div>

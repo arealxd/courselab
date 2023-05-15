@@ -7,6 +7,10 @@ const router = useRouter()
 // import coursesJson from '@/json/courses.json'
 import axios from 'axios'
 
+if (localStorage.getItem('user') === 'ADMIN' || localStorage.getItem('user') === 'TEACHER') {
+  router.push('/panel')
+}
+
 const courses = ref()
 
 const firstIndex = ref(0)
